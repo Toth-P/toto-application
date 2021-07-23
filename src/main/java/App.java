@@ -1,4 +1,5 @@
 import data.FileBasedDataStore;
+import data.ParseService;
 import domain.Outcome;
 import domain.Result;
 import service.TotoService;
@@ -13,14 +14,15 @@ import java.util.Scanner;
 
 public class App {
     public static void main(String[] args) {
-        TotoService totoService = new TotoService();
         FileBasedDataStore fileBasedDataStore = new FileBasedDataStore();
+        TotoService totoService = new TotoService(fileBasedDataStore);
+        ParseService parseService = new ParseService();
         Scanner keyboardInput = new Scanner(System.in);
 
-        playToto(totoService, fileBasedDataStore, keyboardInput);
+        playToto(totoService, parseService, keyboardInput);
     }
 
-    private static void playToto(TotoService totoService, FileBasedDataStore fileBasedDataStore, Scanner keyboardInput) {
+    private static void playToto(TotoService totoService, ParseService parseService, Scanner keyboardInput) {
         String outcome;
         String date;
 
@@ -36,9 +38,9 @@ public class App {
             outcome = keyboardInput.nextLine();
         } while (!outcome.matches("^[xX1-2]{14}"));
 
-        List<Outcome> outcomeList = totoService.getOutcomeList(outcome);
+        List<Outcome> outcomeList = totoService.getOutcomeListFromInput(outcome);
         try {
-            LocalDate parsedDate = LocalDate.parse(fileBasedDataStore.getParsableDate(date));
+            LocalDate parsedDate = LocalDate.parse(parseService.getParsableDate(date));
             try {
                 Result result = totoService.getResult(parsedDate, outcomeList);
                 statistics(totoService);

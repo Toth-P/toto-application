@@ -11,6 +11,18 @@ public class Round {
     private List<Outcome> outcomes;
     private List<Hit> hits;
 
+    public Round(int year, int week, int roundOfWeek, LocalDate date, List<Outcome> outcomes, List<Hit> hits) {
+        this.year = year;
+        this.week = week;
+        this.roundOfWeek = roundOfWeek;
+        this.date = date;
+        this.outcomes = outcomes;
+        this.hits = hits;
+    }
+
+    public Round() {
+    }
+
     public int getYear() {
         return year;
     }

@@ -23,6 +23,8 @@ public class FileBasedDataStore implements DataStore {
 
     private List<Round> rounds;
 
+    ParseService parseService = new ParseService();
+
 
     public void init(String path) {
 
@@ -81,7 +83,7 @@ public class FileBasedDataStore implements DataStore {
             LocalDate localDate = getDateFromYearAndNumberOfTheWeek(nextLine);
             round.setDate(localDate);
         } else {
-            date = getParsableDate(nextLine[3]);
+            date = parseService.getParsableDate(nextLine[3]);
             round.setDate(LocalDate.parse(date));
         }
     }
@@ -94,16 +96,16 @@ public class FileBasedDataStore implements DataStore {
         return LocalDateTime.ofInstant(calendar.toInstant(), calendar.getTimeZone().toZoneId()).toLocalDate();
     }
 
-    public String getParsableDate(String s) {
-        String date = s.replaceAll("\\.", "-");
-        date = date.substring(0, date.length() - 1);
-        return date;
-    }
+
 
     private Hit createHit(int count, String numberOfWagers, String prize) {
         prize = prize.replaceAll("[^\\d.]", "");
 
-        return Hit.builder().withHitCount(count).withNumberOfWagers(parseInt(numberOfWagers)).withPrize(parseInt(prize)).build();
+        return Hit.builder()
+                .withHitCount(count)
+                .withNumberOfWagers(parseInt(numberOfWagers))
+                .withPrize(parseInt(prize))
+                .build();
     }
 
 
