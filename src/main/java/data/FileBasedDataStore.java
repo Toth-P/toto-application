@@ -103,7 +103,7 @@ public class FileBasedDataStore implements DataStore {
     private Hit createHit(int count, String numberOfWagers, String prize) {
         prize = prize.replaceAll("[^\\d.]", "");
 
-        return new Hit(count, parseInt(numberOfWagers), parseInt(prize));
+        return Hit.builder().withHitCount(count).withNumberOfWagers(parseInt(numberOfWagers)).withPrize(parseInt(prize)).build();
     }
 
 
