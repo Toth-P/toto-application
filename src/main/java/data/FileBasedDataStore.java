@@ -9,97 +9,104 @@ import domain.Hit;
 import domain.Outcome;
 import domain.Round;
 
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 import static java.lang.Integer.*;
 
+/**
+ * Data class to import data from file.
+ */
 public class FileBasedDataStore implements DataStore {
 
+    public static final String REGEX_FOR_HIT = "[^\\d.]";
+    public static final String REPLACEMENT_FOR_HIT = "";
+    public static final int COUNT_NUMBER_FOR_HITCOUNT = 14;
+    public static final int LINE_NUMBER = 4;
     private List<Round> rounds;
 
     ParseService parseService = new ParseService();
-
-
-    public void init(String path) {
-
-    }
 
     @Override
     public List<Round> getRounds() {
         rounds = new ArrayList<>();
         try {
-            FileReader fileReader = new FileReader("src/toto.csv");
-            CSVParser parser = new CSVParserBuilder().withSeparator(';').build();
-            CSVReader reader = new CSVReaderBuilder(fileReader)
-                    .withCSVParser(parser)
-                    .build();
-            String[] nextLine;
-            while ((nextLine = reader.readNext()) != null) {
-                Round round = createRound(nextLine);
-                rounds.add(round);
-            }
+            CSVReader reader = createCSVReader();
+            createRoundsFromFile(reader);
         } catch (CsvValidationException | IOException e) {
             e.printStackTrace();
         }
         return rounds;
     }
 
-
-    private Round createRound(String[] nextLine) {
-        Round round = new Round();
-        round.setYear(Integer.parseInt(nextLine[0]));
-        round.setWeek(Integer.parseInt(nextLine[1]));
-        setRoundOfWeek(nextLine, round);
-        setLocalDate(nextLine, round);
-        setHits(nextLine, round);
-        setOutcomes(nextLine, round);
-        return round;
-    }
-
-    private void setOutcomes(String[] nextLine, Round round) {
-        List<Outcome> outcomes = getOutcomeListFromLine(nextLine);
-        round.setOutcomes(outcomes);
-    }
-
-    private void setHits(String[] nextLine, Round round) {
-        List<Hit> hits = getHitListFromLine(nextLine);
-        round.setHits(hits);
-    }
-
-    private void setRoundOfWeek(String[] nextLine, Round round) {
-        if (nextLine[2].equals("-")) nextLine[2] = "1";
-        round.setRoundOfWeek(Integer.parseInt(nextLine[2]));
-    }
-
-    private void setLocalDate(String[] nextLine, Round round) {
-        String date;
-        if ("".equals(nextLine[3])) {
-            LocalDate localDate = getDateFromYearAndNumberOfTheWeek(nextLine);
-            round.setDate(localDate);
-        } else {
-            date = parseService.getParsableDate(nextLine[3]);
-            round.setDate(LocalDate.parse(date));
+    private void createRoundsFromFile(CSVReader reader) throws IOException, CsvValidationException {
+        String[] nextLine;
+        while ((nextLine = reader.readNext()) != null) {
+            Round round = createRound(nextLine);
+            rounds.add(round);
         }
     }
 
-    private LocalDate getDateFromYearAndNumberOfTheWeek(String[] nextLine) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.YEAR, Integer.parseInt(nextLine[0]));
-        calendar.set(Calendar.WEEK_OF_YEAR, Integer.parseInt(nextLine[1]));
-        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-        return LocalDateTime.ofInstant(calendar.toInstant(), calendar.getTimeZone().toZoneId()).toLocalDate();
+    private CSVReader createCSVReader() throws FileNotFoundException {
+        FileReader fileReader = new FileReader("src/toto.csv");
+        CSVParser parser = new CSVParserBuilder().withSeparator(';').build();
+        return new CSVReaderBuilder(fileReader)
+                .withCSVParser(parser)
+                .build();
     }
 
 
+    private Round createRound(String[] nextLine) {
+        return Round.builder()
+                .withYear(Integer.parseInt(nextLine[0]))
+                .withWeek(Integer.parseInt(nextLine[1]))
+                .withRoundOfWeek(getRoundOfWeek(nextLine))
+                .withDate(getLocalDate(nextLine))
+                .withHits(getHits(nextLine))
+                .withOutcomes(getOutcomes(nextLine))
+                .build();
+    }
+
+    private List<Outcome> getOutcomes(String[] nextLine) {
+        return getOutcomeListFromLine(nextLine);
+    }
+
+    private List<Hit> getHits(String[] nextLine) {
+        return getHitListFromLine(nextLine);
+    }
+
+    private int getRoundOfWeek(String[] nextLine) {
+        if ("-".equals(nextLine[2])) nextLine[2] = "1";
+        return Integer.parseInt(nextLine[2]);
+    }
+
+    private LocalDate getLocalDate(String[] nextLine) {
+        if ("".equals(nextLine[3])) {
+            return getDateFromYearAndNumberOfTheWeek(nextLine);
+        } else {
+            return parseService.getParsedDate(nextLine[3]);
+        }
+    }
+
+    public LocalDate getDateFromYearAndNumberOfTheWeek(String[] nextLine) {
+        int week = Integer.parseInt(nextLine[1]);
+        int year = Integer.parseInt(nextLine[0]);
+        WeekFields weekFields = WeekFields.of(Locale.getDefault());
+
+        return LocalDate.now()
+                .withYear(year)
+                .with(weekFields.weekOfYear(), week)
+                .with(weekFields.dayOfWeek(), 2);
+    }
 
     private Hit createHit(int count, String numberOfWagers, String prize) {
-        prize = prize.replaceAll("[^\\d.]", "");
+        prize = prize.replaceAll(REGEX_FOR_HIT, REPLACEMENT_FOR_HIT);
 
         return Hit.builder()
                 .withHitCount(count)
@@ -108,11 +115,10 @@ public class FileBasedDataStore implements DataStore {
                 .build();
     }
 
-
     private List<Hit> getHitListFromLine(String[] nextLine) {
         List<Hit> hits = new ArrayList<>();
-        int countNum = 14;
-        int lineNum = 4;
+        int countNum = COUNT_NUMBER_FOR_HITCOUNT;
+        int lineNum = LINE_NUMBER;
         for (int i = 0; i < 5; i++) {
             hits.add(createHit(countNum, nextLine[lineNum], nextLine[lineNum + 1]));
             countNum--;
@@ -131,11 +137,10 @@ public class FileBasedDataStore implements DataStore {
     }
 
     private Outcome createOutcome(String possibleOutcome) {
-        if (possibleOutcome.equals("1")) {
+        if (Outcome._1.getOutcome().equals(possibleOutcome)) {
             return Outcome._1;
-        } else if (possibleOutcome.equals("2")) {
+        } else if (Outcome._2.getOutcome().equals(possibleOutcome)) {
             return Outcome._2;
         } else return Outcome.X;
     }
-
 }

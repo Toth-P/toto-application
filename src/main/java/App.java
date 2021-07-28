@@ -12,6 +12,9 @@ import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+/**
+ * Main class to process the requested date and tips and calculate the prize.
+ */
 public class App {
     public static void main(String[] args) {
         FileBasedDataStore fileBasedDataStore = new FileBasedDataStore();
@@ -40,7 +43,7 @@ public class App {
 
         List<Outcome> outcomeList = totoService.getOutcomeListFromInput(outcome);
         try {
-            LocalDate parsedDate = LocalDate.parse(parseService.getParsableDate(date));
+            LocalDate parsedDate = parseService.getParsedDate(date);
             try {
                 Result result = totoService.getResult(parsedDate, outcomeList);
                 statistics(totoService);

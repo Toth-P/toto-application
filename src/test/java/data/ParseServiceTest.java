@@ -2,14 +2,21 @@ package data;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import java.time.LocalDate;
+
+import static org.junit.Assert.assertEquals;
 
 public class ParseServiceTest {
     ParseService parseService = new ParseService();
 
     @Test
-    public void testGetParsableDateShouldReturnParsableString() {
-        String actual = parseService.getParsableDate("2015.10.29.");
-        assertEquals( "2015-10-29", actual);
+    public void testGetParsableDateShouldReturnParsedDate() {
+        LocalDate actual = parseService.getParsedDate("2015.10.29.");
+        LocalDate expected = LocalDate.parse("2015-10-29");
+        assertEquals( expected, actual);
     }
+
+
+
+
 }

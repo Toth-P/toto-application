@@ -1,5 +1,8 @@
 package domain;
 
+/**
+ * Domain class to contain outcome related data.
+ */
 public enum Outcome {
 
     _1("1"),

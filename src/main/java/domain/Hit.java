@@ -1,6 +1,8 @@
 package domain;
 
-
+/**
+ * Domain class to contain hit related data.
+ */
 public class Hit {
 
     private final int hitCount;

@@ -7,6 +7,9 @@ import domain.*;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Service class to handle services.
+ */
 public class TotoService implements DataStore {
     public TotoService(FileBasedDataStore fileBasedDataStore) {
         this.fileBasedDataStore = fileBasedDataStore;
@@ -18,6 +21,7 @@ public class TotoService implements DataStore {
     StatisticService statisticService = new StatisticService();
     InputService inputService = new InputService();
     FileBasedDataStore fileBasedDataStore;
+
     @Override
     public List<Round> getRounds() {
 

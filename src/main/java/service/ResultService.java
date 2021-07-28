@@ -9,6 +9,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Service class to handle result data.
+ */
 public class ResultService {
     public Result getResult(List<Round> rounds, LocalDate localDate, List<Outcome> outcomeList) {
         Optional<Round> round = rounds.stream().filter(e -> e.getDate().equals(localDate)).findAny();
@@ -18,8 +21,10 @@ public class ResultService {
         int totalHits = getTotalHits(outcomeList, outcomes);
         int prize = getPrize(hitList, totalHits);
 
-        return new Result(totalHits, prize);
-
+        return Result.builder()
+                .withHitCount(totalHits)
+                .withPrize(prize)
+                .build();
     }
 
     private int getPrize(List<Hit> hitList, int totalHits) {

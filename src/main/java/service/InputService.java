@@ -3,16 +3,17 @@ package service;
 import domain.Outcome;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Service class to process incoming data.
+ */
 public class InputService {
 
     public List<Outcome> getOutcomeListFromInput(String inputOutcomes) {
-        List<String> outcomeStringList = new ArrayList<>();
+        List<String> outcomeStringList = Arrays.asList(inputOutcomes.split(""));
 
-        for (int i = 0; i < inputOutcomes.length(); i++) {
-            outcomeStringList.add(Character.toString(inputOutcomes.charAt(i)));
-        }
         return getOutcomeList(outcomeStringList);
     }
 
